@@ -10,7 +10,14 @@ let container: StartedPostgreSqlContainer;
 let server: ChildProcess;
 
 function runAgentBrowser(...args: string[]): string {
-  return execFileSync("npx", ["agent-browser", ...args], { encoding: "utf-8", cwd: REPO_ROOT });
+  // A hard timeout matters here: execFileSync blocks the event loop
+  // synchronously, so a hung subprocess would never let vitest's own
+  // hookTimeout/testTimeout fire — it would just hang the CI job forever.
+  return execFileSync("npx", ["agent-browser", ...args], {
+    encoding: "utf-8",
+    cwd: REPO_ROOT,
+    timeout: 30_000,
+  });
 }
 
 async function waitForServer(): Promise<void> {
@@ -31,17 +38,18 @@ describe("admin/users end-to-end", () => {
     container = await new PostgreSqlContainer("postgres:16-alpine").start();
     const databaseUrl = container.getConnectionUri();
 
-    // Separate process: ./mikro-orm.config.ts reads process.env.DATABASE_URL
-    // once at import time, so it must be set before this process starts.
+    // Separate process: ./mikro-orm.config.ts reads this env var once at
+    // import time, so it must be set before this process starts.
     execFileSync("npm", ["run", "db:sync-schema", "-w", "@devmentor/db"], {
       cwd: REPO_ROOT,
-      env: { ...process.env, DATABASE_URL: databaseUrl },
+      env: { ...process.env, DEVMENTOR_DATABASE_URL: databaseUrl },
       stdio: "inherit",
+      timeout: 60_000,
     });
 
     server = spawn("npm", ["run", "start", "--", "--port", String(PORT)], {
       cwd: REPO_ROOT,
-      env: { ...process.env, DATABASE_URL: databaseUrl },
+      env: { ...process.env, DEVMENTOR_DATABASE_URL: databaseUrl },
       stdio: "inherit",
     });
 
