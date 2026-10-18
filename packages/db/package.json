@@ -5,13 +5,20 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "db:sync-schema": "tsx scripts/sync-schema.ts"
   },
   "dependencies": {
     "@mikro-orm/core": "^7",
     "@mikro-orm/postgresql": "^7"
   },
   "devDependencies": {
-    "typescript": "^5"
+    "@types/node": "^20",
+    "eslint": "^9",
+    "tsx": "^4",
+    "typescript": "^5",
+    "typescript-eslint": "^8",
+    "vitest": "^5"
   }
 }

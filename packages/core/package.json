@@ -4,13 +4,27 @@
   "private": true,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./validators/*": "./src/validators/*.ts"
+  },
   "scripts": {
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "awilix": "^13"
+    "@devmentor/db": "*",
+    "awilix": "^13",
+    "jsonwebtoken": "^9",
+    "pino": "^10",
+    "zod": "^4"
   },
   "devDependencies": {
-    "typescript": "^5"
+    "@types/jsonwebtoken": "^9",
+    "@types/node": "^20",
+    "eslint": "^9",
+    "typescript": "^5",
+    "typescript-eslint": "^8",
+    "vitest": "^5"
   }
 }

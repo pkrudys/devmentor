@@ -16,14 +16,17 @@ DevMentor to monorepo (npm workspaces) z pakietami w `packages/*`, w scope
 - **`packages/app`** (`@devmentor/app`) — Next.js (App Router) + TypeScript +
   React. Strony, routing, kompozycja, server actions. Jedyny pakiet, który się
   deployuje.
-- **`packages/core`** (`@devmentor/core`) — logika domenowa wielokrotnego
-  użytku i kontener Dependency Injection ([Awilix](https://github.com/jeffijoe/awilix)).
-  Nowe serwisy rejestruj w `createAppContainer()` i dodawaj do typu `Cradle`.
+- **`packages/core`** (`@devmentor/core`) — logika domenowa, kontener
+  Dependency Injection ([Awilix](https://github.com/jeffijoe/awilix)) i
+  warstwa HTTP wielokrotnego użytku (`src/http/`). Nowe zależności DI
+  rejestruj w `withScope.ts`/`container.ts` i dodawaj do typu `Cradle`
+  (`src/container/cradle.ts`).
 - **`packages/db`** (`@devmentor/db`) — dostęp do danych: encje
-  [MikroORM](https://mikro-orm.io/) (PostgreSQL), konfiguracja połączenia i
-  pula połączeń. Migracje CLI i docker-compose dla lokalnego Postgresa są
-  świadomie jeszcze nieskonfigurowane (patrz specyfikacja fundamentu monorepo
-  w `.ai/specs/implemented/`).
+  [MikroORM](https://mikro-orm.io/) (PostgreSQL) przez `defineDomainEntity()`,
+  konfiguracja połączenia i pula połączeń. Migracje CLI i docker-compose dla
+  lokalnego Postgresa są świadomie jeszcze nieskonfigurowane — dev używa
+  `npm run db:sync-schema -w @devmentor/db` (patrz specyfikacje w
+  `.ai/specs/implemented/`).
 - **`packages/ui`** (`@devmentor/ui`) — komponenty UI wielokrotnego użytku:
   [shadcn-ui](https://ui.shadcn.com/) (głównie dla stron/paneli backendowych)
   na [Tailwind CSS](https://tailwindcss.com/) (stylowanie stron frontendowych).
@@ -42,6 +45,69 @@ Uruchamianie całego projektu — zawsze z roota repozytorium:
 npm install
 npm run dev
 ```
+
+## Konwencja konceptów domenowych
+
+Kod domenowy nie jest organizowany w `modules/`. Każdy koncept (`auth`,
+`mentors`, `availability`, `bookings`, `payments`, `messages`, `favorites`,
+`reviews`, ...) to folder o tej samej nazwie powtarzany w warstwach, które go
+potrzebują:
+
+- `packages/db/src/entities/<concept>/<name>.entity.ts` (przez
+  `defineDomainEntity()` z `entities/define.ts`)
+- `packages/core/src/services/<concept>/<name>.service.ts`
+- `packages/core/src/validators/<concept>/` (współdzielone schematy zod, gdy
+  potrzebne)
+- `packages/app/src/app/api/<concept>/route.ts` i odpowiadający `page.tsx` pod
+  właściwą grupą tras (persona)
+
+Folder konceptu powstaje dopiero przy jego pierwszym pliku — nigdy nie
+scaffolduj pustych. To konwencja katalogowa, nie runtime modułów: nie ma
+per-konceptowego setup/ACL/auto-discovery. Pełna tabela nazewnictwa i wzorce
+port/event-emitter: `.ai/docs/engineering-standards.md`.
+
+ID zdarzeń ma format `concept.entity.action` (np. `bookings.booking.created`)
+i są emitowane przez typowany emitter w `packages/core/src/events`,
+zarejestrowany w `Cradle` — to wyłącznie in-process, bez kolejki/workera w tym
+projekcie (jeszcze nieistniejące — dodawane dopiero przy pierwszej funkcji,
+która tego potrzebuje).
+
+## Warstwa reużywalna API i UI
+
+Każda trasa i każda strona reużywa dwóch wspólnych warstw zamiast odtwarzać
+fetch/walidację/auth/obsługę błędów per funkcja:
+
+- `packages/core/src/http/` — `errors.ts` (typowana hierarchia `AppError`),
+  `apiHandler.ts` (owija trasę: łapie `AppError`/`ZodError`, mapuje na status +
+  kopertę JSON, sprawdza nagłówek CSRF na non-GET, loguje nieoczekiwane błędy),
+  `makeCrudRoute.ts` (schemat + serwis → `{ GET, POST, PUT, DELETE }` dla
+  prostych zasobów CRUD), `auth.ts` (`requireSession`, `requireRole`, JWT w
+  httpOnly cookie).
+- `packages/ui/src/backend/` — `api/apiCall.ts` (jedyne dozwolone miejsce na
+  `fetch('/api/*')`, zawsze z nagłówkiem CSRF), `forms/CrudForm.tsx`
+  (formularz sterowany schematem zod), `tables/DataTable.tsx` (lista sterowana
+  konfiguracją kolumn), `feedback/{LoadingMessage,ErrorMessage,EmptyState}.tsx`.
+
+**Ważne dla komponentów klienckich (`'use client'`):** importuj z
+`@devmentor/core` tylko przez dedykowane podścieżki (np.
+`@devmentor/core/validators/auth/user-create.schema`), nigdy przez barrel
+`@devmentor/core` — barrel re-eksportuje też kod server-only (MikroORM,
+serwisy), który nie zbuduje się dla przeglądarki. Zobacz
+[[client-server-barrel-imports]] w `.ai/lessons/`.
+
+Nowy reużywalny komponent ma jeden docelowy dom:
+
+1. Surowy prymityw shadcn (bez logiki) → `ui/src/components/ui/`, tylko przez
+   `npx shadcn@latest add <nazwa>` — nigdy ręcznie pisany.
+2. Generyczny, konceptowo-agnostyczny wzorzec panelu → `ui/src/backend/<kategoria>/`.
+3. Komponent przypisany do jednego konceptu → `ui/src/components/<concept>/`,
+   nazwany jak folder konceptu w `db`/`core`.
+4. Komponent używany przez dokładnie jedną stronę → kolokuj obok `page.tsx`,
+   wydziel dopiero gdy pojawi się drugi konsument.
+
+Pełne uzasadnienie (SRP/DRY/dependency-inversion) i referencyjny przykład
+(`auth`/`User`): `.ai/docs/engineering-standards.md` oraz
+`.ai/specs/implemented/2026-10-18-engineering-standards-foundation.md`.
 
 # Katalog `.ai` — specyfikacje, logi przebiegów i lekcje
 

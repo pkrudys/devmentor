@@ -5,19 +5,27 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1",
     "class-variance-authority": "^0.7",
     "clsx": "^2",
-    "tailwind-merge": "^3"
+    "tailwind-merge": "^3",
+    "zod": "^4"
   },
   "peerDependencies": {
     "react": "^19"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6",
+    "@testing-library/react": "^16",
     "@types/react": "^19",
-    "typescript": "^5"
+    "eslint": "^9",
+    "jsdom": "^30",
+    "typescript": "^5",
+    "typescript-eslint": "^8",
+    "vitest": "^5"
   }
 }

@@ -2,17 +2,34 @@
   "name": "devmentor",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
+  "engines": {
+    "node": ">=22.22"
+  },
   "scripts": {
     "dev": "next dev packages/app",
     "build": "next build packages/app",
     "start": "next start packages/app",
-    "lint": "npm run lint --workspace @devmentor/app",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "tsc --noEmit && npm run typecheck --workspaces --if-present",
+    "test:unit": "vitest run --project core --project db --project ui --project app --coverage",
+    "test:integration": "vitest run --project integration",
+    "test": "npm run test:unit && npm run test:integration"
   },
   "devDependencies": {
-    "typescript": "^5"
+    "@testcontainers/postgresql": "^12",
+    "@testing-library/dom": "^10",
+    "@testing-library/jest-dom": "^6",
+    "@testing-library/react": "^16",
+    "@vitejs/plugin-react": "^6",
+    "@vitest/coverage-v8": "^5",
+    "agent-browser": "^0.39",
+    "jsdom": "^30",
+    "testcontainers": "^12",
+    "typescript": "^5",
+    "vitest": "^5"
   }
 }

@@ -15,6 +15,16 @@ i Tailwind CSS. Używane głównie przez strony/panele backendowe DevMentor.
   npx shadcn@latest add <komponent>
   ```
 
+- `src/backend/` — generyczne, konceptowo-agnostyczne bloki do budowy paneli
+  backendowych: `api/apiCall.ts` (jedyne dozwolone miejsce na `fetch('/api/*')`),
+  `forms/CrudForm.tsx` (formularz sterowany schematem zod), `tables/DataTable.tsx`
+  (lista sterowana konfiguracją kolumn), `feedback/{LoadingMessage,ErrorMessage,
+  EmptyState}.tsx`. Nowy, współdzielony wzorzec panelu ląduje tutaj — komponent
+  przypisany do jednego konceptu domenowego idzie do `src/components/<concept>/`.
+  **`ui` nigdy nie importuje `@devmentor/core`** (egzekwowane przez ESLint,
+  patrz `eslint.config.mjs`) — `apiCall` dubluje kształt `ApiResult` lokalnie
+  zamiast go importować.
+
 Tailwind sam w sobie nie jest tu budowany — klasy użyte w `src/` są skanowane
 przez Tailwind skonfigurowany w `@devmentor/app` (`@source` w
 `packages/app/src/app/globals.css`). Tokeny kolorów (`bg-primary`,

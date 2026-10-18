@@ -5,5 +5,5 @@ export function initOrm() {
   return MikroORM.init(config);
 }
 
-export { User } from "./entities/User";
+export { User } from "./entities";
 export { default as mikroOrmConfig } from "./mikro-orm.config";
