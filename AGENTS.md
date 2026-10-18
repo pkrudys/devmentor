@@ -109,6 +109,10 @@ Pełne uzasadnienie (SRP/DRY/dependency-inversion) i referencyjny przykład
 (`auth`/`User`): `.ai/docs/engineering-standards.md` oraz
 `.ai/specs/implemented/2026-10-18-engineering-standards-foundation.md`.
 
+## Testy
+
+**Zasada wymuszona: każda nowa funkcja musi mieć 100% pokrycia testami jednostkowymi.**
+
 # Katalog `.ai` — specyfikacje, logi przebiegów i lekcje
 
 Ten projekt trzyma w katalogu `.ai/` trzy rodzaje trwałej wiedzy roboczej. **Każdy

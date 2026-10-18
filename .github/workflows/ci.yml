@@ -48,6 +48,9 @@ jobs:
   test-integration:
     name: Integration tests (testcontainers + agent-browser)
     runs-on: ubuntu-latest
+    # Safety net on top of the test's own subprocess timeouts: a hang here
+    # should fail the job, not burn CI minutes indefinitely.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -5,6 +5,7 @@ const ORIGINAL_ENV = { ...process.env };
 function resetEnv() {
   process.env = { ...ORIGINAL_ENV };
   delete process.env.DATABASE_URL;
+  delete process.env.DEVMENTOR_DATABASE_URL;
   delete process.env.DB_NAME;
   delete process.env.DB_HOST;
   delete process.env.DB_PORT;
@@ -25,6 +26,14 @@ describe("mikro-orm.config", () => {
     expect(config.clientUrl).toBe("postgres://user:pass@example.com:5432/mydb");
     expect(config.dbName).toBeUndefined();
     expect(config.pool).toEqual({ min: 2, max: 10 });
+  });
+
+  it("prefers DEVMENTOR_DATABASE_URL over an ambient DATABASE_URL", async () => {
+    resetEnv();
+    process.env.DATABASE_URL = "postgres://ambient/default-db";
+    process.env.DEVMENTOR_DATABASE_URL = "postgres://user:pass@example.com:5432/dedicated";
+    const { default: config } = await import("./mikro-orm.config");
+    expect(config.clientUrl).toBe("postgres://user:pass@example.com:5432/dedicated");
   });
 
   it("falls back to discrete DB_* vars with defaults when DATABASE_URL is unset", async () => {
