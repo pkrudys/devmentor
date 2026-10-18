@@ -23,7 +23,9 @@ function runAgentBrowser(...args: string[]): string {
 async function waitForServer(): Promise<void> {
   for (let attempt = 0; attempt < 60; attempt++) {
     try {
-      const res = await fetch(`${BASE_URL}/api/health`);
+      // Bounded per attempt: an unresponsive (not merely refusing) server
+      // would otherwise hang this fetch forever, defeating the attempt cap.
+      const res = await fetch(`${BASE_URL}/api/health`, { signal: AbortSignal.timeout(2_000) });
       if (res.ok) return;
     } catch {
       // not up yet
