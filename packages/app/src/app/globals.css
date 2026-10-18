@@ -1,3 +1,27 @@
+@import "tailwindcss";
+@source "../../../ui/src";
+
+/* Maps shadcn-ui's expected design tokens onto Tailwind v4 color utilities
+   (bg-primary, bg-destructive, ...) so @devmentor/ui components pick up this
+   app's palette without each consumer repeating the mapping. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--headline);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--soft);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-md: var(--radius);
+}
+
 /* Page-wide basics first. The starter screen's own classes follow; once
    page.tsx is replaced nothing uses them, and the page stays plain and dark. */
 :root {
@@ -6,7 +30,15 @@
   --soft: #948d85;
   --primary: #e5f520;
   --primary-foreground: #1a1919;
+  --secondary: #272625;
+  --secondary-foreground: #edf5cd;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --accent: #272625;
+  --accent-foreground: #edf5cd;
+  --muted: #272625;
   --border: rgba(255, 255, 255, 0.1);
+  --ring: #e5f520;
   --radius: 8px;
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   color-scheme: dark;

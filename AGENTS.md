@@ -1,12 +1,47 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# Next.js w tym repo
 
-# This is NOT the Next.js you know
+To monorepo, a aplikacja Next.js mieszka w `packages/app/`. Zarządzany przez
+`next dev` blok zasad dla agentów (ostrzeżenie o breaking changes i
+dokumentacji w `node_modules/next/dist/docs/`) jest utrzymywany **tam**, nie
+tutaj — zobacz `packages/app/AGENTS.md` zanim zaczniesz edytować kod tego
+pakietu. Powód: `next dev packages/app` wywołuje generator bloku względem
+katalogu podanego jako argument, nie względem roota repo. Szczegóły:
+[[nextjs-agent-rules-monorepo]] w `.ai/lessons/`.
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+# Stack i architektura DevMentor
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+DevMentor to monorepo (npm workspaces) z pakietami w `packages/*`, w scope
+`@devmentor/*`:
 
-<!-- END:nextjs-agent-rules -->
+- **`packages/app`** (`@devmentor/app`) — Next.js (App Router) + TypeScript +
+  React. Strony, routing, kompozycja, server actions. Jedyny pakiet, który się
+  deployuje.
+- **`packages/core`** (`@devmentor/core`) — logika domenowa wielokrotnego
+  użytku i kontener Dependency Injection ([Awilix](https://github.com/jeffijoe/awilix)).
+  Nowe serwisy rejestruj w `createAppContainer()` i dodawaj do typu `Cradle`.
+- **`packages/db`** (`@devmentor/db`) — dostęp do danych: encje
+  [MikroORM](https://mikro-orm.io/) (PostgreSQL), konfiguracja połączenia i
+  pula połączeń. Migracje CLI i docker-compose dla lokalnego Postgresa są
+  świadomie jeszcze nieskonfigurowane (patrz specyfikacja fundamentu monorepo
+  w `.ai/specs/implemented/`).
+- **`packages/ui`** (`@devmentor/ui`) — komponenty UI wielokrotnego użytku:
+  [shadcn-ui](https://ui.shadcn.com/) (głównie dla stron/paneli backendowych)
+  na [Tailwind CSS](https://tailwindcss.com/) (stylowanie stron frontendowych).
+  Tailwind sam w sobie jest skonfigurowany tylko w `packages/app` — `ui` jest
+  skanowany przez `@source` w `packages/app/src/app/globals.css`.
+
+Zasada przydziału kodu: logika domenowa/DI → `core`, dostęp do danych/encje →
+`db`, komponenty UI → `ui`, strony/routing/kompozycja → `app`. Pakiety
+importowane są bezpośrednio jako źródła TypeScript (`"main": "./src/index.ts"`)
+— Turbopack transpiluje pakiety workspace'u automatycznie, więc `core`/`db`/`ui`
+nie potrzebują własnego kroku builda.
+
+Uruchamianie całego projektu — zawsze z roota repozytorium:
+
+```bash
+npm install
+npm run dev
+```
 
 # Katalog `.ai` — specyfikacje, logi przebiegów i lekcje
 
