@@ -54,7 +54,10 @@ describe("admin/users end-to-end", () => {
     // wrapper and leaves next-server running as an orphan.
     server = spawn("npm", ["run", "start", "--", "--port", String(PORT)], {
       cwd: REPO_ROOT,
-      env: { ...process.env, DEVMENTOR_DATABASE_URL: databaseUrl },
+      // --enable-source-maps: the admin/users SSR error seen in CI
+      // (TypeError reading 'filter', not reproducible against a local
+      // Postgres) only shows a minified frame without this.
+      env: { ...process.env, DEVMENTOR_DATABASE_URL: databaseUrl, NODE_OPTIONS: "--enable-source-maps" },
       stdio: "inherit",
       detached: true,
     });
